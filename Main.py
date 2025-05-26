@@ -203,6 +203,9 @@ def ChatData():
     return "Sorry! I am not trained for that question"
 
 
+import tempfile
+import threading
+import time
 
 @app.route('/record', methods=['POST'])
 def record():
@@ -213,25 +216,20 @@ def record():
 
     try:
         ffmpeg_path = os.path.join(os.getcwd(), 'ffmpeg', 'ffmpeg.exe')
-        audio_dir = os.path.join('static', 'audio')
-        os.makedirs(audio_dir, exist_ok=True)
 
-        webm_path = os.path.join(audio_dir, "audio.webm")
-        wav_path = os.path.join(audio_dir, "audio.wav")
+        # Temporary files
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_webm, \
+             tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_wav:
 
-        # Save incoming webm audio file
-        with open(webm_path, "wb") as f:
-            f.write(request.files['data'].read())
+            temp_webm.write(request.files['data'].read())
+            temp_webm.flush()
 
-        # Convert to wav using ffmpeg
-        subprocess.check_output([ffmpeg_path, "-y", "-i", webm_path, wav_path], stderr=subprocess.STDOUT)
+            subprocess.check_output([ffmpeg_path, "-y", "-i", temp_webm.name, temp_wav.name], stderr=subprocess.STDOUT)
 
-        # Transcribe audio to text
-        with sr.AudioFile(wav_path) as source:
-            audio = recognizer.record(source)
-        query = recognizer.recognize_google(audio, language="en-IN").strip()
+            with sr.AudioFile(temp_wav.name) as source:
+                audio = recognizer.record(source)
+            query = recognizer.recognize_google(audio, language="en-IN").strip()
 
-        # Price negotiation logic
         output = "Sorry! I am not trained for the given question"
         initial_price = 20.0
         max_discount = initial_price * 0.15
@@ -245,10 +243,27 @@ def record():
                 predicted_price -= discount
                 output = f"The final price you can get this product is ${predicted_price:.2f}"
 
-        # Convert chatbot response to speech
+        # Generate response audio
+        audio_dir = os.path.join('static', 'audio')
+        os.makedirs(audio_dir, exist_ok=True)
         response_filename = f"response_{int(time.time())}.mp3"
         response_path = os.path.join(audio_dir, response_filename)
         gTTS(output, lang='en').save(response_path)
+
+        # Delete all temp files (webm/wav) immediately
+        os.remove(temp_webm.name)
+        os.remove(temp_wav.name)
+
+        # Schedule deletion of response MP3 after 10 seconds
+        def delete_later(path):
+            time.sleep(10)
+            try:
+                os.remove(path)
+                print(f"[INFO] Deleted: {path}")
+            except Exception as e:
+                print(f"[WARN] Failed to delete {path}: {e}")
+
+        threading.Thread(target=delete_later, args=(response_path,)).start()
 
         return jsonify({
             "query": query,
@@ -259,6 +274,8 @@ def record():
     except Exception as e:
         traceback.print_exc()
         return make_response(f"Server error: {str(e)}", 500)
+
+
 
 
 
@@ -368,7 +385,7 @@ def AboutUs():
 @app.route('/Logout')
 def Logout():
     # Remove user session
-    session.pop('username', None)
+    uname = session.pop('username', None)
 
     # Define the audio folder
     audio_dir = os.path.join('static', 'audio')
@@ -382,7 +399,27 @@ def Logout():
                 except Exception as e:
                     print(f"Error deleting {file}: {e}")
 
+    # Delete post reviews and orders of the logged-in user
+    if uname:
+        try:
+            con = get_db_connection()
+            with con:
+                cur = con.cursor()
+
+                # Delete user reviews
+                cur.execute("DELETE FROM reviews WHERE username = %s", (uname,))
+
+                # Delete user orders
+                cur.execute("DELETE FROM purchaseorder WHERE username = %s", (uname,))
+
+                con.commit()
+                print(f"Deleted reviews and orders for user: {uname}")
+        except Exception as e:
+            print(f"Error deleting user data for {uname}: {e}")
+
     return render_template('index.html', msg='Logged out successfully!')
+
+
 
 
 @app.route('/')
