@@ -214,7 +214,7 @@ def record():
         return make_response("Please select a product first from Browse Products.", 400)
 
     try:
-        ffmpeg_path = os.path.join(os.getcwd(), 'ffmpeg', 'ffmpeg.exe')
+        ffmpeg_path = os.path.join(os.getcwd(), 'ffmpeg', 'ffmpeg')
 
         # Temporary files
         with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_webm, \
