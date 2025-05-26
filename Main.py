@@ -367,7 +367,23 @@ def AboutUs():
 
 @app.route('/Logout')
 def Logout():
-    return render_template('index.html', msg='')
+    # Remove user session
+    session.pop('username', None)
+
+    # Define the audio folder
+    audio_dir = os.path.join('static', 'audio')
+
+    # Delete audio files (.webm, .wav, .mp3)
+    if os.path.exists(audio_dir):
+        for file in os.listdir(audio_dir):
+            if file.endswith(('.webm', '.wav', '.mp3')):
+                try:
+                    os.remove(os.path.join(audio_dir, file))
+                except Exception as e:
+                    print(f"Error deleting {file}: {e}")
+
+    return render_template('index.html', msg='Logged out successfully!')
+
 
 @app.route('/')
 def home():
