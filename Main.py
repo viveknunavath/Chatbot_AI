@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, make_response
-import pymysql
+import psycopg2
 import datetime
 import pandas as pd
 import numpy as np
@@ -31,13 +31,12 @@ sid = SentimentIntensityAnalyzer()
 recognizer = sr.Recognizer()
 
 def get_db_connection():
-    return pymysql.connect(
-        host='127.0.0.1',
-        port=3306,
-        user='root',
-        password='root',  
-        database='negotiate',
-        charset='utf8'
+    return psycopg2.connect(
+        host='dpg-d0q4vueuk2gs73a8gdt0-a.oregon-postgres.render.com',
+        port=5432,
+        database='chatbot_ai_wngz',
+        user='chatbot_ai_wngz_user',
+        password='IVEU9LsHCVXVwuL154xxv75L3VnueQ85'
     )
 
 @app.route('/ViewReview', methods=['GET'])
