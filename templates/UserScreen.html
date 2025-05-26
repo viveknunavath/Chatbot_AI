@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="h-screen bg-violet-100 flex items-center justify-center">
+  <div class="w-full max-w-6xl bg-white rounded-xl shadow-xl flex overflow-hidden">
+
+    <!-- LEFT: Options -->
+    <div class="w-1/2 p-10 flex flex-col justify-center space-y-6">
+      <h1 class="text-4xl font-extrabold text-gray-800">Welcome, {{ msg }}</h1>
+      <p class="text-gray-600 text-lg">Explore features of our smart e-commerce platform.</p>
+
+      <div class="flex flex-col space-y-3">
+        <a href="/BrowseProducts" class="bg-violet-600 hover:bg-violet-700 text-white py-3 px-6 rounded-lg text-center font-medium">Browse Products</a>
+        <a href="/ViewOrders" class="bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg text-center font-medium">View Orders</a>
+        <a href="/PostReview" class="bg-yellow-500 hover:bg-yellow-600 text-white py-3 px-6 rounded-lg text-center font-medium">Post Review</a>
+        <a href="/ViewReview" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg text-center font-medium">View Reviews</a>
+        <a href="/AboutUs" class="bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 rounded-lg text-center font-medium">About Us</a>
+        <a href="/Logout" class="bg-gray-300 hover:bg-gray-400 text-gray-900 py-3 px-6 rounded-lg text-center font-medium">Logout</a>
+      </div>
+    </div>
+
+    <!-- RIGHT: Image -->
+    <div class="w-1/2 bg-gradient-to-tr from-violet-500 to-purple-600 flex items-center justify-center">
+      <img src="{{ url_for('static', filename='UserScreen-img2.png') }}" alt="Dashboard" class="w-3/4 h-auto object-contain rounded-lg shadow-lg" />
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Negotiate with Chatbot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    let chatHistory = "";
+
+    function displayMessage() {
+      const input = document.getElementById("userInput").value.trim();
+      if (!input) return;
+
+      chatHistory += "You: " + input + "\n";
+
+      fetch("/ChatData?mytext=" + encodeURIComponent(input))
+        .then(response => response.text())
+        .then(responseText => {
+          chatHistory += "Chatbot: " + responseText + "\n";
+          document.getElementById("chatlog").value = chatHistory;
+          document.getElementById("userInput").value = "";
+        })
+        .catch(error => {
+          chatHistory += "[Error getting response]\n";
+          document.getElementById("chatlog").value = chatHistory;
+        });
+    }
+  </script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-bold text-gray-800">Negotiate with Chatbot</h1>
+      <p class="text-gray-500 mt-2">{{ msg|safe }}</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+      <form method="post" action="/CompleteOrder" class="bg-white p-6 rounded shadow-lg space-y-4">
+        <!-- Hidden Product ID -->
+        <input type="hidden" name="t1" value="{{ request.args.get('t1') }}">
+
+        <textarea id="chatlog" name="chatlog" rows="12" readonly class="w-full p-3 border border-gray-300 rounded text-sm resize-none bg-gray-50" placeholder="Chat history..."></textarea>
+        <input type="text" id="userInput" name="userInput" class="w-full p-3 border border-gray-300 rounded" placeholder="Type your message..." />
+        
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button type="button" onclick="displayMessage()" class="bg-violet-600 text-white px-4 py-2 rounded hover:bg-violet-700">Send Message</button>
+          <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Purchase Product</button>
+          <a href="/BrowseProducts" class="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400 text-center">Back</a>
+        </div>
+      </form>
+
+      <div class="flex justify-center">
+        <img src="{{ url_for('static', filename='chatbot-img3.png') }}" alt="Chatbot Illustration" class="w-3/4 md:w-full max-h-[450px] object-contain" />
+      </div>
+    </div>
+  </div>
+</body>
+</html>

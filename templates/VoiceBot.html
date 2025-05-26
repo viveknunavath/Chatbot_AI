@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Negotiate with Voice Chatbot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-bold text-gray-800">Negotiate with Voice Chatbot</h1>
+      <p class="text-gray-500 mt-2">{{ msg|safe }}</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+      <form method="post" action="/CompleteOrder" class="bg-white p-6 rounded shadow-lg space-y-4">
+        <!-- Hidden Product ID -->
+        <input type="hidden" name="t1" value="{{ request.args.get('t1') }}">
+
+        <textarea id="chatlog" name="chatlog" rows="12" readonly class="w-full p-3 border border-gray-300 rounded text-sm resize-none bg-gray-50" placeholder="Voice chat history..."></textarea>
+
+        <div class="flex gap-4">
+          <button type="button" id="mic" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Get Microphone</button>
+          <button type="button" id="record" hidden class="bg-violet-600 text-white px-4 py-2 rounded hover:bg-violet-700">Record</button>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Purchase Product</button>
+          <a href="/BrowseProducts" class="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400 text-center">Back</a>
+        </div>
+      </form>
+
+      <div class="flex justify-center">
+        <img src="{{ url_for('static', filename='voicebot-img4.png') }}" alt="VoiceBot Illustration" class="w-3/4 md:w-full max-h-[450px] object-contain" />
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const getMic = document.getElementById('mic');
+      const recordButton = document.getElementById('record');
+      const chatBox = document.getElementById('chatlog');
+
+      if ('MediaRecorder' in window) {
+        getMic.addEventListener('click', async () => {
+          getMic.setAttribute('hidden', 'hidden');
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mimeType = 'audio/webm';
+            let chunks = [];
+            const recorder = new MediaRecorder(stream);
+
+            recorder.ondataavailable = event => {
+              if (event.data.size > 0) chunks.push(event.data);
+            };
+
+            recorder.onstop = () => {
+              const blob = new Blob(chunks, { type: mimeType });
+              chunks = [];
+
+              const formData = new FormData();
+              formData.append('data', blob, 'audio_blob');
+
+              fetch('/record', { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(res => {
+                  chatBox.value += `You: ${res.query}\nChatbot: ${res.response}\n`;
+                  const audio = new Audio(res.audio_file);
+                  audio.play();
+                })
+                .catch(err => {
+                  alert('Error processing voice input.');
+                  console.error(err);
+                });
+            };
+
+            recordButton.removeAttribute('hidden');
+            recordButton.addEventListener('click', () => {
+              if (recorder.state === 'inactive') {
+                recorder.start();
+                recordButton.innerText = 'Stop Recording';
+              } else {
+                recorder.stop();
+                recordButton.innerText = 'Record';
+              }
+            });
+
+          } catch {
+            alert('Microphone access denied.');
+          }
+        });
+      } else {
+        alert("Your browser doesn't support the MediaRecorder API.");
+      }
+    });
+  </script>
+</body>
+</html>

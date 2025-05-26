@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chatbot | E-commerce</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-6xl bg-white rounded-lg shadow-xl flex overflow-hidden">
+    
+    <!-- LEFT: Welcome Text & Navigation -->
+    <div class="w-1/2 p-10 flex flex-col justify-center items-center text-center">
+      <h1 class="text-4xl font-bold text-gray-800 mb-4">
+        Price Negotiating Chatbot
+      </h1>
+      <p class="text-gray-600 text-lg mb-6">
+        Negotiate product prices using text and voice in our smart e-commerce platform.
+      </p>
+
+      <div class="flex space-x-4">
+        <a href="/Auth" class="bg-violet-600 text-white px-6 py-3 rounded-md hover:bg-violet-700 transition">Login / Signup</a>
+      </div>
+    </div>
+
+    <!-- RIGHT: Chatbot Image -->
+    <div class="w-1/2 bg-gradient-to-tr from-violet-500 to-purple-600 flex items-center justify-center">
+      <img src="{{ url_for('static', filename='Graident Ai Robot.jpg') }}" alt="Chatbot Image" class="w-3/4 h-auto" />
+    </div>
+  </div>
+</body>
+</html>
