@@ -3,7 +3,7 @@ services:
     name: chatbot-ai
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn Main:app
+    startCommand: python Main.py
     envVars:
       - key: FLASK_ENV
         value: production
