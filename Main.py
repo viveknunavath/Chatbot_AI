@@ -51,9 +51,9 @@ def ViewReview():
             for row in rows:
                 table_rows += f"""
                 <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{row[0]}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{row[1]}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-indigo-600">{row[2]}</td>
+                    <td class='px-6 py-4 whitespace-nowrap text-sm text-gray-800'>{row[0]}</td>
+                    <td class='px-6 py-4 whitespace-nowrap text-sm text-gray-600'>{row[1]}</td>
+                    <td class='px-6 py-4 whitespace-nowrap text-sm font-semibold text-indigo-600'>{row[2]}</td>
                 </tr>
                 """
     except Exception as e:
@@ -65,7 +65,6 @@ def ViewReview():
 @app.route('/ViewOrders', methods=['GET'])
 def ViewOrders():
     global uname
-
     table_rows = ""
     try:
         con = get_db_connection()
@@ -73,7 +72,6 @@ def ViewOrders():
             cur = con.cursor()
             cur.execute("SELECT * FROM purchaseorder WHERE username = %s", (uname,))
             rows = cur.fetchall()
-
             for row in rows:
                 table_rows += f"""
                 <tr>
@@ -84,7 +82,6 @@ def ViewOrders():
                     <td class='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>{row[4]}</td>
                 </tr>
                 """
-
     except Exception as e:
         table_rows = f"<tr><td colspan='5' class='text-red-600 p-4'>Error: {str(e)}</td></tr>"
 
