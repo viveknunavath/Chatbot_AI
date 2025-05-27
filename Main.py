@@ -46,14 +46,14 @@ def ViewReview():
         con = get_db_connection()
         with con:
             cur = con.cursor()
-            cur.execute("SELECT * FROM reviews")
+            cur.execute("SELECT id, username, review, sentiment FROM reviews")
             rows = cur.fetchall()
             for row in rows:
                 table_rows += f"""
                 <tr>
-                    <td class='px-6 py-4 whitespace-nowrap text-sm text-gray-800'>{row[0]}</td>
-                    <td class='px-6 py-4 whitespace-nowrap text-sm text-gray-600'>{row[1]}</td>
-                    <td class='px-6 py-4 whitespace-nowrap text-sm font-semibold text-indigo-600'>{row[2]}</td>
+                    <td class='px-6 py-4 whitespace-nowrap text-sm text-gray-800'>{row[1]}</td> <!-- username -->
+                    <td class='px-6 py-4 whitespace-nowrap text-sm text-gray-600'>{row[2]}</td> <!-- review -->
+                    <td class='px-6 py-4 whitespace-nowrap text-sm font-semibold text-indigo-600'>{row[3]}</td> <!-- sentiment -->
                 </tr>
                 """
     except Exception as e:
@@ -75,11 +75,11 @@ def ViewOrders():
             for row in rows:
                 table_rows += f"""
                 <tr>
-                    <td class='px-6 py-4 whitespace-nowrap text-sm text-gray-800'>{row[0]}</td>
-                    <td class='px-6 py-4 whitespace-nowrap text-sm text-gray-800'>{row[1]}</td>
-                    <td class='px-6 py-4 whitespace-nowrap text-sm text-gray-800'>{row[2]}</td>
-                    <td class='px-6 py-4 whitespace-nowrap text-sm text-green-700 font-semibold'>${row[3]}</td>
-                    <td class='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>{row[4]}</td>
+                    <td class='px-6 py-4 whitespace-nowrap text-sm text-gray-800'>{row[1]}</td> <!-- username -->
+                    <td class='px-6 py-4 whitespace-nowrap text-sm text-gray-800'>{row[2]}</td> <!-- product_id -->
+                    <td class='px-6 py-4 whitespace-nowrap text-sm text-gray-800'>{row[3]}</td> <!-- product_name -->
+                    <td class='px-6 py-4 whitespace-nowrap text-sm text-green-700 font-semibold'>${row[4]:.2f}</td> <!-- amount -->
+                    <td class='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>{row[5]}</td> <!-- transaction_date -->
                 </tr>
                 """
     except Exception as e:
