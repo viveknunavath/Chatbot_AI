@@ -27,6 +27,15 @@ predicted_price = 0.0
 product_name = ''
 uname = None
 
+# Friendly template-based responses
+friendly_responses = {
+    "greeting": lambda: "Hey there!  I'm Nego, your shopping buddy. What can I help you with today?",
+    "price": lambda price: f"Absolutely! That item is currently priced at just ${original_price:.2f}. Let me know if you'd like a discount! ",
+    "discount": lambda price: f"Let me check... okay, here's a better deal: ${price:.2f}! ",
+    "thanks": lambda: "You're very welcome!  Anything else I can do for you?",
+    "fallback": lambda: "Hmm, I’m not sure about that yet. But I’m learning every day!"
+}
+
 sid = SentimentIntensityAnalyzer()
 recognizer = sr.Recognizer()
 
@@ -186,17 +195,26 @@ def redirect_signup():
     return redirect(url_for('Auth'))
 
 
-# Handle text negotiation queries
+
 @app.route('/ChatData')
 def ChatData():
     global predicted_price
-    query = request.args.get('mytext','').lower()
-    if 'price' in query:
-        return f"You can get the product at ${predicted_price:.2f}"
-    if any(k in query for k in ['final','discount']):
-        predicted_price *= 0.95
-        return f"The final price you can get this product is ${predicted_price:.2f}"
-    return "Sorry! I am not trained for that question"
+    query = request.args.get('mytext', '').lower()
+
+    if any(greet in query for greet in ["hi", "hello", "hey"]):
+        return friendly_responses["greeting"]()
+
+    if "price" in query:
+        return friendly_responses["price"](predicted_price)
+
+    if "discount" in query or "final" in query:
+        predicted_price *= 0.95  # apply discount
+        return friendly_responses["discount"](predicted_price)
+
+    if "thank" in query:
+        return friendly_responses["thanks"]()
+
+    return friendly_responses["fallback"]()
 
 
 import tempfile
@@ -211,9 +229,8 @@ def record():
         return make_response("Please select a product first from Browse Products.", 400)
 
     try:
-        ffmpeg_path = 'ffmpeg'
+        ffmpeg_path = os.path.join(os.getcwd(), 'ffmpeg', 'ffmpeg.exe')
 
-        # Temporary files
         with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_webm, \
              tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_wav:
 
@@ -224,20 +241,26 @@ def record():
 
             with sr.AudioFile(temp_wav.name) as source:
                 audio = recognizer.record(source)
-            query = recognizer.recognize_google(audio, language="en-IN").strip()
+            try:
+               query = recognizer.recognize_google(audio, language="en-IN").strip().lower()
+            except sr.UnknownValueError:
+               output = "Sorry, I couldn't understand what you said. Could you please repeat that? "
+               query = ""
 
-        output = "Sorry! I am not trained for the given question"
-        initial_price = 20.0
-        max_discount = initial_price * 0.15
-        total_discount = initial_price - predicted_price
 
-        if 'price' in query.lower():
-            output = f"You can get the product at ${predicted_price:.2f}"
-        elif any(k in query.lower() for k in ['final', 'discount', 'my']):
-            if total_discount < max_discount:
-                discount = min(predicted_price * 0.05, max_discount - total_discount)
-                predicted_price -= discount
-                output = f"The final price you can get this product is ${predicted_price:.2f}"
+        # Friendly response logic
+        if any(word in query for word in ["hi", "hello", "hey"]):
+            output = friendly_responses["greeting"]()
+        elif "price" in query:
+            output = friendly_responses["price"](predicted_price)
+        elif any(k in query for k in ['final', 'discount', 'deal']):
+            discount = min(predicted_price * 0.05, predicted_price * 0.15)
+            predicted_price -= discount
+            output = friendly_responses["discount"](predicted_price)
+        elif "thank" in query:
+            output = friendly_responses["thanks"]()
+        else:
+            output = friendly_responses["fallback"]()
 
         # Generate response audio
         audio_dir = os.path.join('static', 'audio')
@@ -246,11 +269,9 @@ def record():
         response_path = os.path.join(audio_dir, response_filename)
         gTTS(output, lang='en').save(response_path)
 
-        # Delete all temp files (webm/wav) immediately
         os.remove(temp_webm.name)
         os.remove(temp_wav.name)
 
-        # Schedule deletion of response MP3 after 10 seconds
         def delete_later(path):
             time.sleep(10)
             try:
